@@ -61,7 +61,8 @@ namespace HttpRequestService
                 path += item.Key.Trim() + "=" + item.Value.Trim() + "&";
             }
             //If no queries were added, then we should not take the last character away
-            if(Query.Count > 0) 
+            //If query is null, then the defaultParameters were added
+            if((Query != null && Query.Count > 0) || Query is null) 
                 path = path.Substring(0, path.Length - 1);
 
             Uri uri = new Uri(client.BaseAddress + path);
