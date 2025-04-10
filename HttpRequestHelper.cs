@@ -28,56 +28,41 @@ namespace HttpRequestService
             defaultContentHeaders = new Dictionary<string, string>() { { "Content-Type", "application/json" } };
         }
 
-        Dictionary<string, string> DefaultHeaders
+        public Dictionary<string, string> DefaultHeaders
         {
             get { return defaultHeaders; }
             set { defaultHeaders = value; }
         }
 
-        Dictionary<string, string> DefaultParameters
+        public Dictionary<string, string> DefaultParameters
         {
             get { return defaultParameters; }
             set { defaultParameters = value; }
         }
 
-        Dictionary<string, string> DefaultContentHeaders
+        public Dictionary<string, string> DefaultContentHeaders
         {
             get { return defaultContentHeaders; }
             set { defaultContentHeaders = value; }
         }
 
-
-
         public void NewDefaultBaseAddress(string newBase)
         {
             client.BaseAddress = new Uri(newBase);
         }
-
-        public List<T> GET<T>(string path, Dictionary<string,string> Headers)
-        {
-            Uri uri = new Uri(client.BaseAddress + path);
-
-            HttpRequestMessage request = RequestCreator(HttpMethod.Get,uri, Headers is null ? defaultHeaders : Headers);
-
-
-            HttpResponseMessage message = client.SendAsync(request).Result;
-
-            List<T> result = MessageDeserializer<T>(message);
-            
-            return result;
-        }
-
-        public List<T> GET<T>(string path, Dictionary<string,string> Query, Dictionary<string,string> Headers)
+        public List<T> GET<T>(string path, Dictionary<string,string> Query = null, Dictionary<string,string> Headers = null)
         {
             
-            //Adding the querys to the uri            
+            //Adding the queries to the uri            
             path += "?";
 
-            foreach (var item in Query)
+            foreach (var item in Query is null ? defaultParameters : Query)
             {
                 path += item.Key.Trim() + "=" + item.Value.Trim() + "&";
             }
-            path = path.Substring(0, path.Length - 1);
+            //If no queries were added, then we should not take the last character away
+            if(Query.Count > 0) 
+                path = path.Substring(0, path.Length - 1);
 
             Uri uri = new Uri(client.BaseAddress + path);
 
@@ -85,14 +70,15 @@ namespace HttpRequestService
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
+            message.EnsureSuccessStatusCode();
+
             List<T> result = MessageDeserializer<T>(message);
 
             return result;
            
         }
         
-        
-        public List<T> PUT<T,G>(string path, G put, Dictionary<string, string> Headers, Dictionary<string,string> ContentHeader)
+        public List<T> PUT<T,G>(string path, G put, Dictionary<string, string> Headers = null, Dictionary<string,string> ContentHeader = null)
         {
             string ser = JsonSerializer.Serialize(put);
 
@@ -102,12 +88,7 @@ namespace HttpRequestService
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
-            if (!message.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Something went wrong with putting the data! Status code: " + message.StatusCode);
-                
-                return new List<T>();
-            }
+            message.EnsureSuccessStatusCode();
 
             List<T> result = MessageDeserializer<T>(message);
 
@@ -115,13 +96,15 @@ namespace HttpRequestService
 
         }
 
-        public bool DELETE(string path, Dictionary<string, string> Headers)
+        public bool DELETE(string path, Dictionary<string, string> Headers = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
             HttpRequestMessage request = RequestCreator(HttpMethod.Delete, uri, Headers is null ? defaultHeaders : Headers);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
+            
+            message.EnsureSuccessStatusCode();
 
             if (message.IsSuccessStatusCode)
             {
@@ -134,7 +117,7 @@ namespace HttpRequestService
             }
         }
 
-        public bool DELETE<T>(string path, T deletebody, Dictionary<string, string> Headers, Dictionary<string, string> ContentHeaders)
+        public bool DELETE<T>(string path, T deletebody, Dictionary<string, string> Headers = null, Dictionary<string, string> ContentHeaders = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
@@ -142,6 +125,8 @@ namespace HttpRequestService
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
+            message.EnsureSuccessStatusCode();
+            
             if (message.IsSuccessStatusCode)
             {
                 return true;
@@ -153,7 +138,7 @@ namespace HttpRequestService
             }
         }
 
-        public List<T> PATCH<T, G>(string path, G patch, Dictionary<string, string> Headers, Dictionary<string, string> ContentHeaders)
+        public List<T> PATCH<T, G>(string path, G patch, Dictionary<string, string> Headers = null, Dictionary<string, string> ContentHeaders = null)
         {
 
             Uri uri = new Uri(client.BaseAddress + path);
@@ -162,47 +147,38 @@ namespace HttpRequestService
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
-            if (!message.IsSuccessStatusCode) {
-                Console.WriteLine("Something went wrong with patching the data! Status code: " + message.StatusCode);
-                return new List<T>();
-            }
+            message.EnsureSuccessStatusCode();
 
             List<T> result = MessageDeserializer<T>(message);
 
             return result;
         }
 
-        public List<T> POST<T,G>(string path, G post, Dictionary<string, string> Headers, Dictionary<string, string> ContentHeaders)
+        public List<T> POST<T,G>(string path, G post, Dictionary<string, string> Headers = null, Dictionary<string, string> ContentHeaders = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
             HttpRequestMessage request = RequestCreator(HttpMethod.Post, uri, post, Headers is null ? defaultHeaders : Headers, ContentHeaders is null ? defaultContentHeaders : ContentHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
-            if (!message.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Something went wrong with posting the data! Status code: " + message.StatusCode);
-                return new List<T>();
-            }
+
+            message.EnsureSuccessStatusCode();
 
             List<T> result = MessageDeserializer<T>(message);
 
             return result;
         }
 
-        public bool POST(string path, Dictionary<string,string> Headers)
+        public bool POST(string path, Dictionary<string,string> Headers = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
             HttpRequestMessage request = RequestCreator(HttpMethod.Post, uri, Headers is null ? defaultHeaders : Headers);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
-            if (!message.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Something went wrong with posting the data! Status code: " + message.StatusCode);
-                return false;
-            }
 
+            message.EnsureSuccessStatusCode();
+            
             return true;
         }
 
@@ -247,6 +223,11 @@ namespace HttpRequestService
             catch (FormatException ex)
             {
                 Console.WriteLine("Problem with deserializing the data! Error: " + ex.Message);
+                return new List<T>();
+            }
+            catch (NullReferenceException ex)
+            {
+                Console.WriteLine("Null Reference!" + ex.Message);
                 return new List<T>();
             }
             catch (Exception ex) {

@@ -20,13 +20,13 @@ namespace HttpRequestService;
 
         HttpRequestHelper helper = new HttpRequestHelper(baseUri);
 
-        List<jsonPlaceolderModel> test = helper.GET<jsonPlaceolderModel>("/posts", new Dictionary<string, string> { {"id","1" } });
+        List<jsonPlaceolderModel> test = helper.GET<jsonPlaceolderModel>("/posts", null,new Dictionary<string, string> { {"id","1" } });
 
         Console.WriteLine(test.Count);
 
         Dictionary<string, string> DefaultHeader = new Dictionary<string, string>() { {"accept","*/*" } };
 
-        test = helper.GET<jsonPlaceolderModel>("/posts", DefaultHeader);
+        test = helper.GET<jsonPlaceolderModel>("/posts", null,DefaultHeader);
 
         Console.WriteLine(test.Count);
 
