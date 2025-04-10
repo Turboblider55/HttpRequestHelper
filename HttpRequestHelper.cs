@@ -50,13 +50,13 @@ namespace HttpRequestService
         {
             client.BaseAddress = new Uri(newBase);
         }
-        public List<T> GET<T>(string path, Dictionary<string,string> Query = null, Dictionary<string,string> Headers = null)
+        public List<T> GET<T>(string path, Dictionary<string,string>? Query = null, Dictionary<string,string>? Headers = null)
         {
             
             //Adding the queries to the uri            
             path += "?";
 
-            foreach (var item in Query is null ? defaultParameters : Query)
+            foreach (var item in Query ?? defaultParameters)
             {
                 path += item.Key.Trim() + "=" + item.Value.Trim() + "&";
             }
@@ -67,7 +67,7 @@ namespace HttpRequestService
 
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator(HttpMethod.Get, uri, Headers is null ? defaultHeaders : Headers);
+            HttpRequestMessage request = RequestCreator(HttpMethod.Get, uri, Headers ?? defaultHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
@@ -79,13 +79,13 @@ namespace HttpRequestService
            
         }
         
-        public List<T> PUT<T,G>(string path, G put, Dictionary<string, string> Headers = null, Dictionary<string,string> ContentHeader = null)
+        public List<T> PUT<T,G>(string path, G put, Dictionary<string, string>? Headers = null, Dictionary<string,string>? ContentHeader = null)
         {
             string ser = JsonSerializer.Serialize(put);
 
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator<G>(HttpMethod.Put, uri, put, Headers is null ? defaultHeaders : Headers, ContentHeader is null ? defaultContentHeaders : ContentHeader);
+            HttpRequestMessage request = RequestCreator<G>(HttpMethod.Put, uri, put, Headers ?? defaultHeaders, ContentHeader ?? defaultContentHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
@@ -97,11 +97,11 @@ namespace HttpRequestService
 
         }
 
-        public bool DELETE(string path, Dictionary<string, string> Headers = null)
+        public bool DELETE(string path, Dictionary<string, string>? Headers = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator(HttpMethod.Delete, uri, Headers is null ? defaultHeaders : Headers);
+            HttpRequestMessage request = RequestCreator(HttpMethod.Delete, uri, Headers ?? defaultHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
             
@@ -118,11 +118,11 @@ namespace HttpRequestService
             }
         }
 
-        public bool DELETE<T>(string path, T deletebody, Dictionary<string, string> Headers = null, Dictionary<string, string> ContentHeaders = null)
+        public bool DELETE<T>(string path, T deletebody, Dictionary<string, string>? Headers = null, Dictionary<string, string>? ContentHeaders = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator(HttpMethod.Delete, uri, deletebody, Headers is null ? defaultHeaders : Headers, ContentHeaders is null ? defaultContentHeaders : ContentHeaders);
+            HttpRequestMessage request = RequestCreator(HttpMethod.Delete, uri, deletebody, Headers ?? defaultHeaders, ContentHeaders ?? defaultContentHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
@@ -139,12 +139,12 @@ namespace HttpRequestService
             }
         }
 
-        public List<T> PATCH<T, G>(string path, G patch, Dictionary<string, string> Headers = null, Dictionary<string, string> ContentHeaders = null)
+        public List<T> PATCH<T, G>(string path, G patch, Dictionary<string, string>? Headers = null, Dictionary<string, string>? ContentHeaders = null)
         {
 
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator<G>(HttpMethod.Patch,uri, patch, Headers is null ? defaultHeaders : Headers, ContentHeaders is null ? defaultContentHeaders : ContentHeaders);
+            HttpRequestMessage request = RequestCreator<G>(HttpMethod.Patch,uri, patch, Headers ?? defaultHeaders, ContentHeaders ?? defaultContentHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
@@ -155,11 +155,11 @@ namespace HttpRequestService
             return result;
         }
 
-        public List<T> POST<T,G>(string path, G post, Dictionary<string, string> Headers = null, Dictionary<string, string> ContentHeaders = null)
+        public List<T> POST<T,G>(string path, G post, Dictionary<string, string>? Headers = null, Dictionary<string, string>? ContentHeaders = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator(HttpMethod.Post, uri, post, Headers is null ? defaultHeaders : Headers, ContentHeaders is null ? defaultContentHeaders : ContentHeaders);
+            HttpRequestMessage request = RequestCreator(HttpMethod.Post, uri, post, Headers ?? defaultHeaders, ContentHeaders ?? defaultContentHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
@@ -170,11 +170,11 @@ namespace HttpRequestService
             return result;
         }
 
-        public bool POST(string path, Dictionary<string,string> Headers = null)
+        public bool POST(string path, Dictionary<string,string>? Headers = null)
         {
             Uri uri = new Uri(client.BaseAddress + path);
 
-            HttpRequestMessage request = RequestCreator(HttpMethod.Post, uri, Headers is null ? defaultHeaders : Headers);
+            HttpRequestMessage request = RequestCreator(HttpMethod.Post, uri, Headers ?? defaultHeaders);
 
             HttpResponseMessage message = client.SendAsync(request).Result;
 
